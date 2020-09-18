@@ -32,14 +32,14 @@
 
 This repository has been created as an additional material for the article "MeLa: a programming language for a new multidisciplinary oceanographic float" publisher in the Sensors [https://www.mdpi.com/journal/sensors](https://www.mdpi.com/journal/sensors) journal in 2020. 
 
-MeLa is a Domain Specific Language designed to write applications for the Mermaid instrument, a profiler float used to monitor marine environment. The instrument drifts with the oceanic current at depths up to 5000 meters and ascents to the surface at regular time intervals to transmit scientific data. The instrument intents to be a pluridisciplinary platform that can be programmed with different applications written by scientists of different domains such as meteorology, biology or geosciences. MeLa has been created to allow non specialists of embedded systems to write their own applications for the instrument.
+MeLa is a Domain Specific Language designed to write applications for the Mermaid instrument, a profiler float used to monitor marine environment. The instrument drifts with the oceanic current at depths up to 5000 meters and ascents to the surface at regular time intervals to transmit scientific data. The instrument intents to be a pluridisciplinary platform that can be programmed with different applications written by scientists of different domains such as meteorology, biology or geosciences. MeLa has been created to allow non-specialists of embedded systems to write their own applications for the instrument.
 
 The language offers the following advantages:
 
-* It hides embedded software details to the developpers.
-* It takes account of the instrument limitations, sucha as energy or processing ressources.
+* It hides embedded software details to developers.
+* It takes account of the instrument limitations, such as energy or processing resources.
 *  It gives the guarantee that the embedded software deployed on the instrument is safe and reliable.
-*  It enable the programming of several applications on the same instrument.
+*  It enables the programming of several applications on the same instrument.
 
 The installation procedure to be able to use the language is in [chapter 2](#installation-pane). Information about folders of the repository is in [chapter 3](#repository-pane). A brief description of the MeLa syntax and semantic is in [chapter 4](#-pane). A list of functions implemented in the language is in [chapter 5](#repository-pane). Finally, [chapter 6](#repository-pane) is a tutorial to learn to use MeLa with three little applications.
 
@@ -47,11 +47,11 @@ The installation procedure to be able to use the language is in [chapter 2](#ins
 
 <!-- This software is a prototype of a development environment dedicated to an oceanographic instrument. The instrument is a Lagrangian float that drifts with the oceanic current at depths up to 2000m and ascents to the surface at regular time intervals to transmit scientific data. The instrument intents to be a pluridisciplinary platform that can be programmed with different applications written by scientists who are specialists of their domains like meteorology, biology or geosciences. Several applications written independently by different specialists can be put together in the same instrument. -->
 
-<!-- To develop an application, oceanologists have access to a domain specific language and a library of function to read sensors, process and record data or execute specific actions like asking for the float to ascend. The domain specific language has a limited scope intended to ease the development by reducing the programming possibilities. The library contains some specific information about resource consumption of the platform like processing time or energy, in this document we use the word *annotation* to designate this information. The annotations allow for the verification of properties specific to the embedded software domain and give feedback to the users. For example, the scheduling analysis gives feedback about the execution time of the application and the energy analysis returns an estimation of the instrument autonomy. -->
+<!-- To develop an application, oceanologists have access to a domain-specific language and a library of function to read sensors, process and record data or execute specific actions like asking for the float to ascend. The domain-specific language has a limited scope intended to ease the development by reducing the programming possibilities. The library contains some specific information about resource consumption of the platform like processing time or energy, in this document we use the word *annotation* to designate this information. The annotations allow for the verification of properties specific to the embedded software domain and give feedback to the users. For example, the scheduling analysis gives feedback about the execution time of the application and the energy analysis returns an estimation of the instrument autonomy. -->
 
 <!-- In order to install applications written independently in the same instrument, we provide a composition algorithm that can group two applications into a single one that can be uploaded into the instrument. The composition algorithm is actually very simple but our future work will focus on how to detect and resolve conflict between the applications and how to share application functionalities in order to optimize resources consumption of the applications. The composition is done before the installation on the instrument and not during the execution like with a regular OS like Android because the instrument has too limited resources (processor, memory, energy, communication) for this kind of system. -->
 
-<!-- The tutorial in [chapter 6](#tutorial-pane) is a prototype demonstrator made with a [Grove Starter Kit for Arduino](https://www.seeedstudio.com/Grove-Starter-Kit-for-Arduino-p-1855.html) from SeeedStudio. In this example we use the temperature sensor of the kit and the [Grove Ultrasonic Ranger](https://www.seeedstudio.com/Grove-Starter-Kit-for-Arduino-p-1855.html) (apart of the kit). These hardware parts are useful to test the applications for real but there are not mandatory for the most important part of the tutorial that concerns the development and composition of applications. -->
+<!-- The tutorial in [chapter 6](#tutorial-pane) is a prototype demonstrator made with a [Grove Starter Kit for Arduino](https://www.seeedstudio.com/Grove-Starter-Kit-for-Arduino-p-1855.html) from SeeedStudio. In this example we use the temperature sensor of the kit and the [Grove Ultrasonic Ranger](https://www.seeedstudio.com/Grove-Starter-Kit-for-Arduino-p-1855.html) (a part of the kit). These hardware parts are useful to test the applications for real but there are not mandatory for the most important part of the tutorial that concerns the development and composition of applications. -->
 
 
 
@@ -61,9 +61,9 @@ The project has been created in Java with the IntelliJ IDEA CE. Download and ins
 
 To compile the project, click on the Maven icon that can be found on the bottom border or right border of the IDE. Double click on `compomaid > Lifecycle > compile` to start the compilation process. The message `BUILD SUCCESS` should be printed once the compilation has terminated.
 
-To run the project, go on the project pannel on the left side and open the folders `src > main > java > fr.uca.i3s.sparks.compomaid`, rigth click on the `Compomaid` file and click on `Run 'Compomaid.main()'` (after it is possible to click on the "play" button on the top right of the editor). The project will read the applications in the `MeLaApps` folder, show information about ressources usage of the instrument (processor, energy, satelitte transmission) and generate code to simulate the application on a computer.This version of MeLa does not generate the for the instrument and the the library necessary to compile the simulation code neither.
+To run the project, go on the project panel on the left side and open the folders `src > main > java > fr.uca.i3s.sparks.compomaid`, right-click on the `Compomaid` file and click on `Run 'Compomaid.main()'` (after it is possible to click on the "play" button on the top right of the editor). The project will read the applications in the `MeLaApps` folder, show information about resource usage of the instrument (processor, energy, satellite transmission) and generate code to simulate the application on a computer.This version of MeLa does not generate the for the instrument and the library necessary to compile the simulation code neither.
 
-<!-- The PlantUML plugin is used in the project and can be installed by going in "Preferences..." and then in the "Plugins" section, click on browse repositories and search for "PlantUML integration" and install the plug in. The recommended way to open the Gitub project is to double-click on the  file, IntelliJ will then automatically import the project.  -->
+<!-- The PlantUML plugin is used in the project and can be installed by going in "Preferences..." and then in the "Plugins" section, click on browse repositories and search for "PlantUML integration" and install the plug-in. The recommended way to open the Gitub project is to double-click on the  file, IntelliJ will then automatically import the project.  -->
 
 <!-- To test the developed applications on a real platform you need to compile the generated source code with the [Arduino IDE](https://www.arduino.cc/en/Main/software). Then copy the content of the "ArduinoLibrary" directory to your local "Arduino/libraries" directory created during the installation of the Arduino IDE. -->
 
@@ -88,7 +88,7 @@ A MeLa application is composed of three main parts:
 
 * The mission configuration to define basic parameters of the instrument.
 * The coordinator to define when to execute acquisition mode.
-* The acquisition mode(s) to acquire and process the sensors data. There are two types of acquisition modes, the `ContinuousAcqMode` that processes data without stoping, and the `ShortAcqMode` that processes only one packet of data. 
+* The acquisition mode(s) to acquire and process the sensors data. There are two types of acquisition modes, the `ContinuousAcqMode` that processes data without stopping, and the `ShortAcqMode` that processes only one packet of data. 
 
 ```
 Mission:
@@ -122,7 +122,7 @@ Mission:
 
 ### <a name="coordinator-pane"></a> 4.2. _Coordinator_
 
-The coordinator defines when to execute an acquisition mode during the steps of a dive (i.e., descent, park and ascent). For `ShortAcqMode`, a time interval for each execution must be defined. This is not needed for `ContinuousAcqMode` that never stop during the step in which it is executed.  
+The coordinator defines when to execute an acquisition mode during the steps of a dive (i.e., descent, park and ascent). For `ShortAcqMode`, a time interval for each execution must be defined. This is not needed for `ContinuousAcqMode` that never stops during the step in which it is executed.  
 
 ```
 Coordinator:
@@ -135,14 +135,14 @@ Coordinator:
 
 ### <a name="acq-mode-pane"></a> 4.3. _Acquisition modes_
 
-A `ContinuousAcqMode` is executed continuously, it processes data in a streamed way, without stopping. It is more adapted to monitor sporadic events (i.e., that appends from time to time), but it can uses a lot of processor time, especially if the sampling of the sensor is high.
+A `ContinuousAcqMode` is executed continuously, it processes data in a streamed way, without stopping. It is more adapted to monitor sporadic events (i.e., that appends from time to time), but it can use a lot of processor time, especially if the sampling of the sensor is high.
 
 A `ContinuousAcqMode` is divided in several parts:
 
-* The `Input` part allows to define the sensor to use and its configuration, for example it can be the hydrophone with a sampling frequency of 200 Hz.
-* The `Variables` part allows to define the variables used to process the data. A list of data types is given in [chapter 5](#data-types-pane)
-* The `RealTimeSequence` part contains instructions to process the data in real time. It gives the guaranty that all the data will be processed, without missing a sample, such that the data cannot be truncated. Only one `RealTimeSequence` can be defined. 
-* The `ProcessingSequence` part is optional but can be used for instructions with an execution time too long for the `RealTimeSequence`. When this sequence is called there is no guarantee that all the samples coming from the sensor can be processed. It is possible to define several `ProcessingSequence` that can be called from the `RealTimeSequence` or from an other `ProcessingSequence`.
+* The `Input` part allows defining the sensor to use and its configuration, for example it can be the hydrophone with a sampling frequency of 200 Hz.
+* The `Variables` part allows defining the variables used to process the data. A list of data types is given in [chapter 5](#data-types-pane)
+* The `RealTimeSequence` part contains instructions to process the data in real time. It gives the guarantee that all the data will be processed, without missing a sample, such that the data cannot be truncated. Only one `RealTimeSequence` can be defined. 
+* The `ProcessingSequence` part is optional but can be used for instructions with an execution time too long for the `RealTimeSequence`. When this sequence is called, there is no guarantee that all the samples coming from the sensor can be processed. It is possible to define several `ProcessingSequence` that can be called from the `RealTimeSequence` or from another `ProcessingSequence`.
 
 ```
 ContinuousAcqMode acq1:
@@ -164,7 +164,7 @@ endseq;
 ```
 
 
-A `ProcessingAcqMode` have a very similar structre, the only difference is that it does not contain a `RealTimeSequence` because only one paket of data is processed.
+A `ProcessingAcqMode` have a very similar structure, the only difference is that it does not contain a `RealTimeSequence` because only one packet of data is processed.
 
 
 
@@ -172,12 +172,12 @@ A `ProcessingAcqMode` have a very similar structre, the only difference is that 
 
 Instructions are called inside the sequences of instructions (i.e., `RealTimeSequence` or `ProcessingSequence`). The instructions can be:
 
-* An operation, such as `c = a + b`. The operations only accept two operand for the current version of MeLa.
-* A function call, such as `mean(r, array);` which compute the mean values of the array and put the result in the `r` variable.  The list of currently available functions is given in [chapter 6](#library-pane).
-* A `if`condition, such `if a > 10 && b > c:`. A condition must also contain a probability that is used by MeLa to compute the attery lifetime of the float and the amount of data transmitted each month.
+* An operation, such as `c = a + b`. The operations only accept two operands for the current version of MeLa.
+* A function call, such as `mean(r, array);` which computes the mean values of the array and put the result into the `r` variable.  The list of currently available functions is given in [chapter 6](#library-pane).
+* A `if` condition, such `if a > 10 && b > c:`. A condition must also contain a probability that is used by MeLa to compute the battery lifetime of the float and the amount of data transmitted each month.
 * A `for` loop, such as `for i, v in array:`. Each loop iteration read an element of the array from the first to the last, the index of the current element is put in the `i` variable, and its value in the `v` variable.
 
-Comments can be writen this way  `/* this is a comment */`
+Comments can be written this way  `/* this is a comment */`
 
 
 ```
@@ -219,12 +219,12 @@ String str;
 
 **Arrays**
 
-Arrays can be defined for integers, floating points and complex numbers. To declare an array variable, write the data type, the name and the size of the array in parenthesis. The array can also be initialized with values added between the parethesis next to the array size (array of complex numbers cannot be initialized currently).
+Arrays can be defined for integers, floating points and complex numbers.
 
 Parameter:
 
 1. Length of the array.
-2. (optional) Initialization values. The number of values must be equal to the length of the array.
+2. (optional) Initialization values. The number of values must be equal to the length of the array. Arrays of complex numbers cannot be initialized currently
 
 ```
 ArrayInt ai1(10);
@@ -241,7 +241,7 @@ ArrayComplexFloat acf(10);
 
 **Buffers**
 
-Buffers are similar to arrays but it is also possible to append data at the end of the buffer, if older data exists they are overwritten. This feature is practical to bufferize long series of data in a `ContinuousAcqMode`. This is not possible to append data to an array, however, an array can be converted to a buffer with the `toBuffer` function, and a buffer to an array with the `toArray` function. As for an array, the sie of the buffer must be defined in parenthesis.
+Buffers are similar to arrays but it is also possible to append data at the end of the buffer, if older data exists they are overwritten. This feature is practical to bufferize long series of data in a `ContinuousAcqMode`. This is not possible to append data to an array, however, an array can be converted to a buffer with the `toBuffer` function, and a buffer to an array with the `toArray` function.
 
 Parameter:
 
@@ -255,7 +255,7 @@ BufferFloat bf(10);
 
 **FFT**
 
-Fast Fourier Transform (FFT) require a specific variable to be defined for the computation. The s
+Fast Fourier Transform (FFT) require a specific variable to be defined for the computation.
 
 Parameter:
 
@@ -1126,7 +1126,7 @@ getSampleIndex(Int sampeIndex)
 
 
 <!--
-All the functions accessibles to developpers are in a library...
+All the functions accessibles to developers are in a library...
 
 To write an application, the user has access to a library. The library furnished with this example is very tiny. There are two kinds of concepts in the library: Sensors and Functions.
 
