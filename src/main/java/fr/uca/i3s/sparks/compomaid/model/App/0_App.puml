@@ -1,0 +1,23 @@
+@startuml
+
+skinparam nodesep 75
+skinparam ranksep 75
+
+
+class App
+abstract class MissionStep
+
+App "1" *-- "1" Descent
+App "1" *-- "1" Park
+App "1" *-- "1" Ascent
+App "1" *-- "1" Surface
+
+MissionStep <|-- Descent
+MissionStep <|-- Park
+MissionStep <|-- Ascent
+MissionStep <|-- Surface
+
+
+MissionStep "1" *-- "*" AcqMode
+
+@enduml

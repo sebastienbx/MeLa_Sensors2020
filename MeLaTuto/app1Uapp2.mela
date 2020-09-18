@@ -1,0 +1,69 @@
+/********************************************************
+* Float mission
+********************************************************/
+
+parkTime: 100 min;
+parkDepth: 50 m;
+descentAcqMode: TemperatureRecord;
+parkAcqMode: TemperatureRecord, LowRangeDetection;
+ascentAcqMode: TemperatureRecord;
+
+
+/********************************************************
+* Variables
+********************************************************/
+int16 x;
+int16 x_0;
+int16 min_value;
+int16 avg;
+Buffer buff {length=20};
+bool rising_edge_bool;
+bool level_bool;
+
+
+/********************************************************
+* Acquisition mode
+********************************************************/
+mode TemperatureRecord with sensor Temperature:
+sequence TemperatureRecord:
+    x = SensorRead();
+    serialPrintInt32(x);
+    serialPrintString("degC\n");
+endseq;
+
+
+endmode;
+
+
+mode LowRangeDetection with sensor Range:
+sequence DetectLowRange:
+    x_0 = SensorRead();
+    bufferAdd(buff, x_0);
+    rising_edge_bool = RisingEdgeDetection(x_0, 20);
+    if rising_edge_bool:
+        @Probability = 0.005556 pct
+        goto FindMin;
+endseq;
+
+
+sequence FindMin:
+    min_value = bufferFindMin(buff);
+    recordString("Min = ");
+    recordInt32(min_value);
+    recordString("\n");
+    bufferFlush(buff);
+    level_bool = LevelUnder(min_value, 3);
+    if level_bool:
+        @Probability = 50 pct
+        goto AscentRequest;
+endseq;
+
+
+sequence AscentRequest:
+    setAscentRequest();
+endseq;
+
+
+endmode;
+
+

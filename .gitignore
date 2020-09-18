@@ -1,0 +1,5 @@
+.idea/*
+generated/*
+target/*
+compomaid.iml
+.DS_Store

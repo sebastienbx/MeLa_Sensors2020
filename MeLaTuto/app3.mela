@@ -1,0 +1,35 @@
+
+/********************************************************
+* Float mission
+********************************************************/
+
+parkTime: 100 min;
+parkDepth: 50 m;
+descentAcqMode: RangeRecord;
+parkAcqMode: RangeRecord;
+ascentAcqMode: RangeRecord;
+
+/********************************************************
+* Variables
+********************************************************/
+
+int16 x;
+
+
+/********************************************************
+* Acquisition mode
+********************************************************/
+
+mode RangeRecord with sensor Range:
+
+sequence RangeRecord:
+    x = SensorRead();
+    serialPrintInt32(x);
+    serialPrintString("cm\n");
+endseq;
+
+endmode;
+
+
+
+

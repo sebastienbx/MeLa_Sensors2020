@@ -1,0 +1,54 @@
+
+/********************************************************
+* Float mission
+********************************************************/
+
+parkTime: 200 min;
+parkDepth: 100 m;
+parkAcqMode: LowRangeDetection;
+
+
+/********************************************************
+* Variables
+********************************************************/
+
+int16 x;
+int16 min_value;
+int16 avg;
+Buffer buff {length=20};
+bool rising_edge_bool;
+bool level_bool;
+
+
+/********************************************************
+* Acquisition mode
+********************************************************/
+
+mode LowRangeDetection with sensor Range:
+
+sequence DetectLowRange:
+    x = SensorRead();
+    bufferAdd(buff, x);
+    rising_edge_bool = RisingEdgeDetection(x, 20);
+    if rising_edge_bool:
+        @Probability = 2 per hour
+        goto FindMin;
+endseq;
+
+sequence FindMin:
+    min_value = bufferFindMin(buff);
+    recordString("Min = ");
+    recordInt32(min_value);
+    recordString("\n");
+    bufferFlush(buff);
+    level_bool = LevelUnder(min_value, 3);
+    if level_bool:
+        @Probability = 50 pct
+        goto AscentRequest;
+endseq;
+
+sequence AscentRequest:
+    setAscentRequest();
+endseq;
+
+endmode;

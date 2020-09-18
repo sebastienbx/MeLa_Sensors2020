@@ -1,0 +1,29 @@
+@startuml
+
+skinparam nodesep 75
+skinparam ranksep 75
+
+class Composer
+class Analyser
+class Builder
+class Generator
+class File
+
+package model {
+    class App
+    class Library
+}
+note "Model transformations \nare done in Builder \nand Generator classes" as n1
+
+App -> Library : use
+
+Builder --> App : build
+Builder --> Library : build
+App <- Generator : read
+App <-- Analyser  : read
+App <-- Composer  : read-write
+
+File <- Generator : write
+File <- Builder : read
+
+@enduml

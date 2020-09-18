@@ -1,0 +1,24 @@
+@startuml
+
+skinparam nodesep 75
+skinparam ranksep 75
+
+class Library << (S,#FF7700) Singleton >>
+
+class Sensor {
+    - period
+}
+
+class Function {
+    - time
+    - power
+    - parameters
+    - return
+}
+
+
+Library "1" *-- "*" Function : contain
+Library "1" *-- "*" Sensor : contain
+
+
+@enduml

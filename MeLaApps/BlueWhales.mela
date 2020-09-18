@@ -1,0 +1,237 @@
+/* Ten days dive at 1500 meters */
+Mission:
+   ParkTime: 14400 minutes;
+   ParkDepth: 1500 meters;
+
+/* Monitor blue whales during descent, park and ascent */
+Coordinator:
+   DescentAcqModes: BlueWhales;
+   ParkAcqModes: BlueWhales;
+   AscentAcqModes: BlueWhales;
+
+/* Continuous monitoring */
+ContinuousAcqMode BlueWhales:
+
+/* Use the high frequency hydrophone
+Packets of 32 samples are put in the x variable */
+Input:
+    sensor: HydrophoneHF(200);
+    data: x(32);
+
+Variables:
+    /* File to record data */
+    File f;
+
+    /* Floating point numbers arrays */
+    ArrayFloat xf(32);
+    BufferFloat bf(64);
+    ArrayFloat xsf(64);
+
+    /* Variables used to compute the Fourier transform */
+    ArrayComplexFloat spectrum(64);
+    FFTFloat fftInstance(64);
+    ArrayFloat hamming(64, 0.0800, 0.0823, 0.0891, 0.1004, 0.1161, 0.1360, 0.1599, 0.1876, 0.2188, 0.2532, 0.2904,
+    0.3301, 0.3719, 0.4154, 0.4601, 0.5056, 0.5515, 0.5972, 0.6424, 0.6865, 0.7292, 0.7700, 0.8085, 0.8444, 0.8772,
+    0.9067, 0.9325, 0.9544, 0.9723, 0.9858, 0.9949, 0.9994, 0.9994, 0.9949, 0.9858, 0.9723, 0.9544, 0.9325, 0.9067,
+    0.8772, 0.8444, 0.8085, 0.7700, 0.7292, 0.6865, 0.6424, 0.5972, 0.5515, 0.5056, 0.4601, 0.4154, 0.3719, 0.3301,
+    0.2904, 0.2532, 0.2188, 0.1876, 0.1599, 0.1360, 0.1161, 0.1004, 0.0891, 0.0823, 0.0800);
+    ArrayFloat mag(64);
+
+    /* Variables used to find the frequency with maximum amplitude and compute a Fsnr */
+    Float fmax0;
+    Float fmax1;
+    Float fsnr0;
+    Float fsnr1;
+    Float ftmp;
+    Int itmp;
+    Float fsnrTmp;
+
+    /* STA of 5 samples over LTA of 15 samples with a delay of 10 samples for the LTA */
+    StaLtaFloat staltaInstance(5, 15, 10);
+    Float staltares;
+
+    /* Trigger functions on a rising edge, falling edge and a high value with a threshold of 1.4 */
+    TriggerFloat risingEdgeTrigger(RISING_EDGE, 1.4, 0, 0);
+    TriggerFloat highLevelTrigger(HIGH, 1.4, 0, 0);
+    TriggerFloat fallingEdgeTrigger(FALLING_EDGE, 1.4, 0, 0);
+    Bool rtrig;
+    Bool htrig;
+    Bool ftrig;
+
+    /* Sample index on a rising edge trigger */
+    Int trigindex;
+
+    /* Keep last values frequency  */
+    BufferFloat fmaxB(100);
+    BufferFloat fsnrB(100);
+    ArrayFloat fmaxA(100);
+    ArrayFloat fsnrA(100);
+
+    /* Variables used to compute features */
+    Int trigcnt;
+    Int l;
+    Int i1;
+    Int i2;
+    Int i;
+    Float v;
+    Float meanFrequencySnr;
+    Int negCnt;
+    Int posCnt;
+    Int flatCnt;
+    Float maxFrequencyChange;
+    Float maxFrequency;
+
+    /* Array for 20 seconds of data */
+    ArrayFloat x20s(4000);
+
+
+RealTimeSequence clickDet:
+    /* Add 32 samples to array */
+    toFloat(x, xf);
+    push(bf, xf);
+    toArray(bf, xsf);
+
+    /* Process FFT and get magnitude */
+    mult(xsf, hamming, xsf);
+    toComplex(xsf, spectrum);
+    fft(fftInstance, spectrum);
+    magnitude(spectrum, mag);
+
+    /* Set lowest frequencies to the min values of other frequencies */
+    select(mag, 7, 31);
+
+    /* keep last computed values */
+    fmax1 = fmax0;
+    fsnr1 = fsnr0;
+
+    /* Get max values of the spectrum */
+    max(mag, ftmp, itmp);
+    put(mag, itmp, 0.0);
+    fmax0 = itmp;
+    fsnr0 = ftmp;
+
+    max(mag, ftmp, itmp);
+    put(mag, itmp, 0.0);
+    fsnr0 = fsnr0 + ftmp;
+
+    /* Skip two next max values of the spectrum */
+    max(mag, ftmp, itmp);
+    put(mag, itmp, 0.0);
+    max(mag, ftmp, itmp);
+    put(mag, itmp, 0.0);
+
+    /* Compute a SNR from spectrum values */
+    max(mag, ftmp, itmp);
+    put(mag, itmp, 0.0);
+    fsnrTmp = ftmp;
+
+    max(mag, ftmp, itmp);
+    put(mag, itmp, 0.0);
+    fsnrTmp = fsnrTmp + ftmp;
+
+    fsnr0 = fsnr0/fsnrTmp;
+
+    /* STALTA algorithm */
+    stalta(staltaInstance, fsnr0, staltares);
+
+    /* Update detection triggers */
+    trigger(risingEdgeTrigger, staltares, rtrig);
+    trigger(highLevelTrigger, staltares, htrig);
+    trigger(fallingEdgeTrigger, staltares, ftrig);
+
+    if rtrig:
+        @probability = 1 per min
+        getSampleIndex(trigindex);
+    endif;
+    if htrig:
+        @probability = 1 per min
+        push(fmaxB, fmax1);
+        push(fsnrB, fsnr1);
+        trigcnt = trigcnt + 1;
+    endif;
+    if ftrig:
+        @probability = 1 per min
+        trigcnt = trigcnt - 1;
+
+        toArray(fmaxB, fmaxA);
+        toArray(fsnrB, fsnrA);
+
+        /* Find the index with the maximum frequency */
+        l = trigcnt/2;
+        select(fmaxA, 0, l);
+        max(fmaxA, v, i1);
+
+         /* Find the index with the minimum frequency */
+        select(fmaxA, l, trigcnt);
+        min(fmaxA, v, i2);
+        i2 = l + i2;
+
+        /* Select array between trigger and detrigger */
+        select(fmaxA, i1, i2);
+        select(fsnrA, i1, i2);
+
+        /* Compute mean frequency SNR */
+        mean(fsnrA, meanFrequencySnr);
+
+        /* Find the maximum frequency among frequencies with maximum amplitude */
+        max(fmaxA, maxFrequency, itmp);
+
+        /* Compute finite difference (forward) of maximum frequencies values */
+        diff(fmaxA, fmaxA);
+
+        /* Last value of diff is not computed but set to the same value as the precedent one */
+        i2 = i2 - 1;
+        select(fmaxA, i1, i2);
+
+        /* Count number number of increase or decrease of the maximum frequencies values */
+        negCnt = 0;
+        posCnt = 0;
+        flatCnt = 0;
+        for i, v in fmaxA:
+            if v < 0:
+                @probability = 50 per min
+                negCnt = negCnt + 1;
+            endif;
+            if v > 0:
+                @probability = 50 per min
+                posCnt = posCnt + 1;
+            endif;
+            if v == 0:
+                @probability = 50 per min
+                flatCnt = flatCnt + 1;
+            endif;
+        endfor;
+
+        /* Find the max frequency change */
+        abs(fmaxA, fmaxA);
+        max(fmaxA, maxFrequencyChange, itmp);
+
+        if trigcnt > 4
+                && negCnt > 3*posCnt
+                &&  negCnt > 2
+                && 4*negCnt > flatCnt
+                && meanFrequencySnr > 2.5
+                && maxFrequency > 6
+                && maxFrequencyChange < 7:
+            @probability = 5 per hour
+            call recordDet
+        endif;
+
+        trigcnt = 0;
+
+        clear(fmaxA);
+        clear(fmaxB);
+        clear(fsnrA);
+        clear(fsnrB);
+    endif;
+endseq;
+
+
+ProcessingSequence recordDet:
+    record(f, trigindex);
+    /* If 20 seconds of data are recorded for each detection */
+    /* record(f, x20s); */
+endseq;
+
+
+endmode;

@@ -1,0 +1,400 @@
+
+Mission:
+   ParkTime: 14400 minutes;
+   ParkDepth: 1700 meters;
+
+
+Coordinator:
+   ParkAcqModes: MermaidAlgo;
+
+
+ContinuousAcqMode MermaidAlgo:
+
+/*  The input is the hydrophone, packets of 40 samples are put in the x variable */
+Input:
+    sensor: HydrophoneBF(40);
+    data: x(1);
+
+Variables:
+    /*  File to record datas */
+    File f;
+    File g;
+
+    /*  Buffer that contains the last 5 minutes of signal */
+    BufferInt last5Minutes(12000);
+
+    /* STA over LTA filter */
+    IIRInt staltaFilter(5, 5,
+                    407, 0, -813, 0, 407,
+                    10000, -37220, 52970, -34140, 8410);
+
+    /*  STA over LTA, 400 over 4000 sample, the delay of the LTA is 0, the scaling factor is set to 1000 */
+    StaLtaInt staltaInstance(400, 4000, 0, 1000);
+    ArrayInt staltaResult(1);
+
+    /*  Trigger on a rising edge over a value of 2000, and after a delay of 4000 samples, the minimum time between each trigger is 10000*/
+    TriggerInt triggerInstance(RISING_EDGE, 2500, 4000, 10000);
+    Bool triggered;
+
+    /* Arrays that contains the wavelet transform */
+    ArrayInt cdf24array(12000);
+
+    /* Object that realize wavelet transform of 6 scales and over 12000 samples */
+    CDF24Int cdf24instance(6, 12000);
+
+    /* Noise and signal power of each scale */
+    ArrayInt noisePowerI(6);
+    ArrayInt signalPowerI(6);
+    ArrayFloat noisePower(6);
+    ArrayFloat signalPower(6);
+
+    /* L1 norm of noise and signal power */
+    Float signalL1;
+    Float noiseL1;
+
+    /* Model distribution for a P-wave, and for 6 scales */
+    DistributionFloat scale1Distribution (50,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00, +0.000000000e+00, +0.000000000e+00,
+        +0.000000000e+00, +0.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00, +1.000000000e+00, +1.000000000e+00,
+        +1.000000000e+00, +1.000000000e+00);
+
+    DistributionFloat scale2Distribution (50,
+        +5.124119200e-02, +7.041574800e-02, +8.959030400e-02, +1.087648600e-01,
+        +1.279394200e-01, +1.471139700e-01, +1.662885300e-01, +1.854630800e-01,
+        +2.046376400e-01, +2.238122000e-01, +2.429867500e-01, +2.621613100e-01,
+        +2.813358600e-01, +3.005104200e-01, +3.196849800e-01, +3.388595300e-01,
+        +3.580340900e-01, +3.772086500e-01, +3.963832000e-01, +4.155577600e-01,
+        +4.347323100e-01, +4.539068700e-01, +4.730814300e-01, +4.922559800e-01,
+        +5.114305400e-01, +5.306050900e-01, +5.497796500e-01, +5.689542100e-01,
+        +5.881287600e-01, +6.073033200e-01, +6.264778700e-01, +6.456524300e-01,
+        +6.648269900e-01, +6.840015400e-01, +7.031761000e-01, +7.223506500e-01,
+        +7.415252100e-01, +7.606997700e-01, +7.798743200e-01, +7.990488800e-01,
+        +8.182234400e-01, +8.373979900e-01, +8.565725500e-01, +8.757471000e-01,
+        +8.949216600e-01, +9.140962200e-01, +9.332707700e-01, +9.524453300e-01,
+        +9.716198800e-01, +9.907944400e-01,
+        +1.530000000e+02, +3.610000000e+02, +5.830000000e+02, +7.690000000e+02,
+        +8.980000000e+02, +9.730000000e+02, +1.000000000e+03, +9.930000000e+02,
+        +9.600000000e+02, +9.110000000e+02, +8.520000000e+02, +7.890000000e+02,
+        +7.250000000e+02, +6.620000000e+02, +6.010000000e+02, +5.440000000e+02,
+        +4.920000000e+02, +4.430000000e+02, +3.990000000e+02, +3.590000000e+02,
+        +3.220000000e+02, +2.900000000e+02, +2.600000000e+02, +2.340000000e+02,
+        +2.100000000e+02, +1.890000000e+02, +1.700000000e+02, +1.530000000e+02,
+        +1.380000000e+02, +1.240000000e+02, +1.120000000e+02, +1.010000000e+02,
+        +9.100000000e+01, +8.300000000e+01, +7.500000000e+01, +6.800000000e+01,
+        +6.100000000e+01, +5.600000000e+01, +5.000000000e+01, +4.600000000e+01,
+        +4.200000000e+01, +3.800000000e+01, +3.500000000e+01, +3.200000000e+01,
+        +2.900000000e+01, +2.600000000e+01, +2.400000000e+01, +2.200000000e+01,
+        +2.000000000e+01, +1.900000000e+01);
+
+    DistributionFloat scale3Distribution (50,
+        +1.502314400e-01, +1.676934000e-01, +1.851553500e-01, +2.026173100e-01,
+        +2.200792700e-01, +2.375412200e-01, +2.550031800e-01, +2.724651300e-01,
+        +2.899270900e-01, +3.073890500e-01, +3.248510000e-01, +3.423129600e-01,
+        +3.597749200e-01, +3.772368700e-01, +3.946988300e-01, +4.121607800e-01,
+        +4.296227400e-01, +4.470847000e-01, +4.645466500e-01, +4.820086100e-01,
+        +4.994705700e-01, +5.169325200e-01, +5.343944800e-01, +5.518564400e-01,
+        +5.693183900e-01, +5.867803500e-01, +6.042423000e-01, +6.217042600e-01,
+        +6.391662200e-01, +6.566281700e-01, +6.740901300e-01, +6.915520900e-01,
+        +7.090140400e-01, +7.264760000e-01, +7.439379600e-01, +7.613999100e-01,
+        +7.788618700e-01, +7.963238200e-01, +8.137857800e-01, +8.312477400e-01,
+        +8.487096900e-01, +8.661716500e-01, +8.836336100e-01, +9.010955600e-01,
+        +9.185575200e-01, +9.360194700e-01, +9.534814300e-01, +9.709433900e-01,
+        +9.884053400e-01, +1.005867300e+00,
+        +1.290000000e+02, +2.170000000e+02, +3.260000000e+02, +4.460000000e+02,
+        +5.680000000e+02, +6.840000000e+02, +7.870000000e+02, +8.710000000e+02,
+        +9.350000000e+02, +9.770000000e+02, +9.980000000e+02, +1.000000000e+03,
+        +9.870000000e+02, +9.600000000e+02, +9.230000000e+02, +8.780000000e+02,
+        +8.270000000e+02, +7.740000000e+02, +7.190000000e+02, +6.630000000e+02,
+        +6.090000000e+02, +5.570000000e+02, +5.070000000e+02, +4.600000000e+02,
+        +4.160000000e+02, +3.750000000e+02, +3.370000000e+02, +3.020000000e+02,
+        +2.710000000e+02, +2.420000000e+02, +2.160000000e+02, +1.930000000e+02,
+        +1.720000000e+02, +1.530000000e+02, +1.360000000e+02, +1.210000000e+02,
+        +1.070000000e+02, +9.500000000e+01, +8.500000000e+01, +7.500000000e+01,
+        +6.700000000e+01, +5.900000000e+01, +5.200000000e+01, +4.600000000e+01,
+        +4.100000000e+01, +3.700000000e+01, +3.200000000e+01, +2.900000000e+01,
+        +2.600000000e+01, +2.300000000e+01);
+
+    DistributionFloat scale4Distribution (50,
+        +3.896294600e-01, +4.215917600e-01, +4.535540500e-01, +4.855163500e-01,
+        +5.174786500e-01, +5.494409400e-01, +5.814032400e-01, +6.133655400e-01,
+        +6.453278300e-01, +6.772901300e-01, +7.092524300e-01, +7.412147200e-01,
+        +7.731770200e-01, +8.051393200e-01, +8.371016100e-01, +8.690639100e-01,
+        +9.010262100e-01, +9.329885000e-01, +9.649508000e-01, +9.969131000e-01,
+        +1.028875400e+00, +1.060837700e+00, +1.092800000e+00, +1.124762300e+00,
+        +1.156724600e+00, +1.188686900e+00, +1.220649200e+00, +1.252611500e+00,
+        +1.284573800e+00, +1.316536100e+00, +1.348498400e+00, +1.380460700e+00,
+        +1.412423000e+00, +1.444385300e+00, +1.476347500e+00, +1.508309800e+00,
+        +1.540272100e+00, +1.572234400e+00, +1.604196700e+00, +1.636159000e+00,
+        +1.668121300e+00, +1.700083600e+00, +1.732045900e+00, +1.764008200e+00,
+        +1.795970500e+00, +1.827932800e+00, +1.859895100e+00, +1.891857400e+00,
+        +1.923819700e+00, +1.955782000e+00,
+        +1.180000000e+02, +1.970000000e+02, +2.970000000e+02, +4.140000000e+02,
+        +5.380000000e+02, +6.600000000e+02, +7.720000000e+02, +8.650000000e+02,
+        +9.350000000e+02, +9.800000000e+02, +1.000000000e+03, +9.970000000e+02,
+        +9.740000000e+02, +9.340000000e+02, +8.820000000e+02, +8.210000000e+02,
+        +7.540000000e+02, +6.860000000e+02, +6.170000000e+02, +5.510000000e+02,
+        +4.880000000e+02, +4.290000000e+02, +3.740000000e+02, +3.250000000e+02,
+        +2.810000000e+02, +2.420000000e+02, +2.070000000e+02, +1.770000000e+02,
+        +1.510000000e+02, +1.280000000e+02, +1.080000000e+02, +9.100000000e+01,
+        +7.700000000e+01, +6.500000000e+01, +5.400000000e+01, +4.600000000e+01,
+        +3.800000000e+01, +3.200000000e+01, +2.700000000e+01, +2.200000000e+01,
+        +1.900000000e+01, +1.600000000e+01, +1.300000000e+01, +1.100000000e+01,
+        +9.000000000e+00, +8.000000000e+00, +7.000000000e+00, +6.000000000e+00,
+        +5.000000000e+00, +4.000000000e+00);
+
+    DistributionFloat scale5Distribution (50,
+        +6.853508400e-01, +7.131390000e-01, +7.409271600e-01, +7.687153200e-01,
+        +7.965034700e-01, +8.242916300e-01, +8.520797900e-01, +8.798679500e-01,
+        +9.076561100e-01, +9.354442700e-01, +9.632324200e-01, +9.910205800e-01,
+        +1.018808700e+00, +1.046596900e+00, +1.074385100e+00, +1.102173200e+00,
+        +1.129961400e+00, +1.157749500e+00, +1.185537700e+00, +1.213325800e+00,
+        +1.241114000e+00, +1.268902200e+00, +1.296690300e+00, +1.324478500e+00,
+        +1.352266600e+00, +1.380054800e+00, +1.407843000e+00, +1.435631100e+00,
+        +1.463419300e+00, +1.491207400e+00, +1.518995600e+00, +1.546783700e+00,
+        +1.574571900e+00, +1.602360100e+00, +1.630148200e+00, +1.657936400e+00,
+        +1.685724500e+00, +1.713512700e+00, +1.741300900e+00, +1.769089000e+00,
+        +1.796877200e+00, +1.824665300e+00, +1.852453500e+00, +1.880241600e+00,
+        +1.908029800e+00, +1.935818000e+00, +1.963606100e+00, +1.991394300e+00,
+        +2.019182400e+00, +2.046970600e+00,
+        +7.700000000e+01, +1.150000000e+02, +1.640000000e+02, +2.240000000e+02,
+        +2.950000000e+02, +3.740000000e+02, +4.590000000e+02, +5.470000000e+02,
+        +6.360000000e+02, +7.200000000e+02, +7.970000000e+02, +8.640000000e+02,
+        +9.200000000e+02, +9.610000000e+02, +9.880000000e+02, +1.000000000e+03,
+        +9.990000000e+02, +9.850000000e+02, +9.590000000e+02, +9.230000000e+02,
+        +8.790000000e+02, +8.290000000e+02, +7.750000000e+02, +7.190000000e+02,
+        +6.610000000e+02, +6.030000000e+02, +5.470000000e+02, +4.920000000e+02,
+        +4.410000000e+02, +3.920000000e+02, +3.470000000e+02, +3.060000000e+02,
+        +2.680000000e+02, +2.340000000e+02, +2.030000000e+02, +1.760000000e+02,
+        +1.520000000e+02, +1.310000000e+02, +1.120000000e+02, +9.600000000e+01,
+        +8.200000000e+01, +6.900000000e+01, +5.900000000e+01, +5.000000000e+01,
+        +4.200000000e+01, +3.500000000e+01, +3.000000000e+01, +2.500000000e+01,
+        +2.100000000e+01, +1.800000000e+01);
+
+    DistributionFloat scale6Distribution (50,
+        +6.461173500e-01, +6.758469200e-01, +7.055764800e-01, +7.353060500e-01,
+        +7.650356200e-01, +7.947651800e-01, +8.244947500e-01, +8.542243100e-01,
+        +8.839538800e-01, +9.136834500e-01, +9.434130100e-01, +9.731425800e-01,
+        +1.002872100e+00, +1.032601700e+00, +1.062331300e+00, +1.092060800e+00,
+        +1.121790400e+00, +1.151520000e+00, +1.181249500e+00, +1.210979100e+00,
+        +1.240708700e+00, +1.270438200e+00, +1.300167800e+00, +1.329897400e+00,
+        +1.359626900e+00, +1.389356500e+00, +1.419086100e+00, +1.448815600e+00,
+        +1.478545200e+00, +1.508274800e+00, +1.538004300e+00, +1.567733900e+00,
+        +1.597463500e+00, +1.627193000e+00, +1.656922600e+00, +1.686652200e+00,
+        +1.716381700e+00, +1.746111300e+00, +1.775840900e+00, +1.805570400e+00,
+        +1.835300000e+00, +1.865029600e+00, +1.894759100e+00, +1.924488700e+00,
+        +1.954218300e+00, +1.983947800e+00, +2.013677400e+00, +2.043407000e+00,
+        +2.073136500e+00, +2.102866100e+00,
+        +2.600000000e+01, +4.400000000e+01, +7.000000000e+01, +1.060000000e+02,
+        +1.530000000e+02, +2.100000000e+02, +2.780000000e+02, +3.550000000e+02,
+        +4.380000000e+02, +5.250000000e+02, +6.120000000e+02, +6.970000000e+02,
+        +7.750000000e+02, +8.450000000e+02, +9.030000000e+02, +9.480000000e+02,
+        +9.800000000e+02, +9.970000000e+02, +1.001000000e+03, +9.910000000e+02,
+        +9.700000000e+02, +9.390000000e+02, +9.000000000e+02, +8.540000000e+02,
+        +8.030000000e+02, +7.490000000e+02, +6.940000000e+02, +6.370000000e+02,
+        +5.810000000e+02, +5.270000000e+02, +4.750000000e+02, +4.260000000e+02,
+        +3.800000000e+02, +3.370000000e+02, +2.980000000e+02, +2.620000000e+02,
+        +2.290000000e+02, +2.000000000e+02, +1.740000000e+02, +1.510000000e+02,
+        +1.300000000e+02, +1.120000000e+02, +9.600000000e+01, +8.300000000e+01,
+        +7.100000000e+01, +6.000000000e+01, +5.100000000e+01, +4.400000000e+01,
+        +3.700000000e+01, +3.100000000e+01);
+
+    /* Variables used to compute a criterion over each scale */
+    Float scalePower;
+    Float leftCumulative;
+    Float rightCumulative;
+    Float scaleCrit;
+    ArrayFloat scalesCrits(6);
+
+    /* Final rating */
+    ArrayFloat weights(6,
+        +0.0000000e+00,
+        +9.3206534e-01,
+        +6.4847759e-01,
+        +9.4931877e-04,
+        +1.6048523e-01,
+        +0.0000000e+00);
+    Float rating;
+
+
+RealTimeSequence detection:
+
+    /* Save samples in the circular buffer */
+    push(last5Minutes, x);
+
+    /* Filter data for STA over LTA algorithm */
+    iir(staltaFilter, x, x);
+
+    /* Compute the Short Term Average over Long Term Average  */
+    abs(x, x);
+    stalta(staltaInstance, x, staltaResult);
+
+    /* Check the trigger */
+    trigger(triggerInstance, staltaResult, triggered);
+
+    if triggered:
+        @probability = 1 per week
+        call discriminate
+    endif;
+
+endseq;
+
+
+ProcessingSequence discriminate:
+
+        /* Convert the last 5 minutes of signal into an array */
+        toArray(last5Minutes, cdf24array);
+
+        /* Compute the wavelet transform */
+        cdf24(cdf24instance, cdf24array);
+
+        /* Compute the wavelet transform power over each scale */
+        cdf24ScalesPower(cdf24instance, cdf24array, 0, 7400, noisePowerI);
+        cdf24ScalesPower(cdf24instance, cdf24array, 7840, 8640, signalPowerI);
+
+        /* Set power value to 0 for those who have a weight of 0 */
+        put(noisePowerI, 0, 0);
+        put(noisePowerI, 5, 0);
+        put(signalPowerI, 0, 0);
+        put(signalPowerI, 5, 0);
+
+        /* Convert power results to floats */
+        toFloat(noisePowerI, noisePower);
+        toFloat(signalPowerI, signalPower);
+
+        /* Compute the L1 norm */
+        sum(noisePower, noiseL1);
+        sum(signalPower, signalL1);
+
+        /* Divide each scale power by the L1 norm  */
+        div(noisePower, noiseL1, noisePower);
+        div(signalPower, signalL1, signalPower);
+
+        /* Normalise the signal by the noise  */
+        div(signalPower, noisePower, signalPower);
+
+        /* Compute the criterion for each scale */
+        get(signalPower, 0, scalePower);
+        cumulativeDistribution(scale1Distribution, scalePower, leftCumulative);
+        rightCumulative = 50 - leftCumulative;
+        if leftCumulative >= rightCumulative:
+            @probability = 5 per week
+            scaleCrit = rightCumulative/leftCumulative;
+        endif;
+        if leftCumulative < rightCumulative:
+            @probability = 5 per week
+            scaleCrit = leftCumulative/rightCumulative;
+        endif;
+        put(scalesCrits, 0, scaleCrit);
+
+        get(signalPower, 1, scalePower);
+        cumulativeDistribution(scale2Distribution, scalePower, leftCumulative);
+        rightCumulative = 16587 - leftCumulative;
+        if leftCumulative >= rightCumulative:
+            @probability = 5 per week
+            scaleCrit = rightCumulative/leftCumulative;
+        endif;
+        if leftCumulative < rightCumulative:
+            @probability = 5 per week
+            scaleCrit = leftCumulative/rightCumulative;
+        endif;
+        put(scalesCrits, 1, scaleCrit);
+
+        get(signalPower, 2, scalePower);
+        cumulativeDistribution(scale3Distribution, scalePower, leftCumulative);
+        rightCumulative = 20510 - leftCumulative;
+        if leftCumulative >= rightCumulative:
+            @probability = 5 per week
+            scaleCrit = rightCumulative/leftCumulative;
+        endif;
+        if leftCumulative < rightCumulative:
+            @probability = 5 per week
+            scaleCrit = leftCumulative/rightCumulative;
+        endif;
+        put(scalesCrits, 2, scaleCrit);
+
+        get(signalPower, 3, scalePower);
+        cumulativeDistribution(scale4Distribution, scalePower, leftCumulative);
+        rightCumulative = 17452 - leftCumulative;
+        if leftCumulative >= rightCumulative:
+            @probability = 5 per week
+            scaleCrit = rightCumulative/leftCumulative;
+        endif;
+        if leftCumulative < rightCumulative:
+            @probability = 5 per week
+            scaleCrit = leftCumulative/rightCumulative;
+        endif;
+        put(scalesCrits, 3, scaleCrit);
+
+        get(signalPower, 4, scalePower);
+        cumulativeDistribution(scale5Distribution, scalePower, leftCumulative);
+        rightCumulative = 21801 - leftCumulative;
+        if leftCumulative >= rightCumulative:
+            @probability = 5 per week
+            scaleCrit = rightCumulative/leftCumulative;
+        endif;
+        if leftCumulative < rightCumulative:
+            @probability = 5 per week
+            scaleCrit = leftCumulative/rightCumulative;
+        endif;
+        put(scalesCrits, 4, scaleCrit);
+
+        get(signalPower, 5, scalePower);
+        cumulativeDistribution(scale6Distribution, scalePower, leftCumulative);
+        rightCumulative = 22255 - leftCumulative;
+        if leftCumulative >= rightCumulative:
+            @probability = 5 per week
+            scaleCrit = rightCumulative/leftCumulative;
+        endif;
+        if leftCumulative < rightCumulative:
+            @probability = 5 per week
+            scaleCrit = leftCumulative/rightCumulative;
+        endif;
+        put(scalesCrits, 5, scaleCrit);
+
+        /* Compute final criterion */
+        dotProduct(scalesCrits, weights, rating);
+        rating = rating/1.741977;
+
+        /* Record the signal if the rating is above 0.1 */
+        serialPrint(rating);
+        if rating > 0.01:
+            @probability = 4 per week
+            call record
+        endif;
+        if rating > 0.1:
+            @probability = 1 per week
+            ascentRequest();
+        endif;
+endseq;
+
+
+ProcessingSequence record:
+    toArray(last5Minutes, cdf24array);
+    record(f, cdf24array);
+endseq;
+
+
+endmode;

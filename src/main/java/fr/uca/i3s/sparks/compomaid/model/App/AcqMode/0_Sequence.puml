@@ -1,0 +1,19 @@
+@startuml
+
+skinparam nodesep 75
+skinparam ranksep 75
+
+
+AcqMode "1" *- "1..*" Sequence
+Sequence "1" *-- "1..*" Instruction
+Instruction "*" --> "1" Function
+
+Sequence "1" *-- "1" Condition
+Condition "1..*" --> "1" Sequence : guard
+
+'Sequence <-- Goto : next
+'State <-- Goto : current
+
+AcqMode "1" --> "1" Sensor : with
+
+@enduml
