@@ -44,7 +44,7 @@ public class SatelliteTransmissionAnalyser extends Visitor {
                         double period_h = 0;
                         if (sequence.equals(acqMode.getMainSequence())) {
                             if (acqMode instanceof ShortAcqMode) {
-                                period_h = schedule.getPeriod_s();
+                                period_h = (double)schedule.getPeriod_s()/60/60;
                             }
                             if (acqMode instanceof ContinuousAcqMode) {
                                 double period_s = acqMode.getSensorConfiguration().getPeriod_s()*acqMode.getInputVariable().getLength();
@@ -116,7 +116,7 @@ public class SatelliteTransmissionAnalyser extends Visitor {
                         double period_h = 0;
                         if (sequence.equals(acqMode.getMainSequence())) {
                             if (acqMode instanceof ShortAcqMode) {
-                                period_h = schedule.getPeriod_s();
+                                period_h = (double)schedule.getPeriod_s()/60/60;;
                             }
                             if (acqMode instanceof ContinuousAcqMode) {
                                 double period_s = acqMode.getSensorConfiguration().getPeriod_s()*acqMode.getInputVariable().getLength();

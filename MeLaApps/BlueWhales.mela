@@ -85,15 +85,17 @@ Variables:
     ArrayFloat x20s(4000);
 
 
-RealTimeSequence clickDet:
-    /* Add 32 samples to array */
-    toFloat(x, xf);
+RealTimeSequence callDet:
+    /* Convert 32 samples to floating point numbers */
+    convert(x, xf);
+    /* Append 32 samples to 64 samples buffer (50 pct overlap for each processing windows) */
     push(bf, xf);
-    toArray(bf, xsf);
+    /* Convert the buffer to an array */
+    convert(bf, xsf);
 
     /* Process FFT and get magnitude */
     mult(xsf, hamming, xsf);
-    toComplex(xsf, spectrum);
+    convert(xsf, spectrum); /* to complex number conversion */
     fft(fftInstance, spectrum);
     magnitude(spectrum, mag);
 
@@ -153,8 +155,9 @@ RealTimeSequence clickDet:
         @probability = 1 per min
         trigcnt = trigcnt - 1;
 
-        toArray(fmaxB, fmaxA);
-        toArray(fsnrB, fsnrA);
+        /* convert buffers to arrays */
+        convert(fmaxB, fmaxA);
+        convert(fsnrB, fsnrA);
 
         /* Find the index with the maximum frequency */
         l = trigcnt/2;

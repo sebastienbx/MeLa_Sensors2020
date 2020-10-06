@@ -28,13 +28,13 @@ public class Library implements Visitable {
         FunctionPrototype fProto;
 
 
-        fProto = new FunctionPrototype("toFloat", "toFloatI32");
+        fProto = new FunctionPrototype("convert", "toFloatI32");
         fProto.addParameterType(DataType.Int, DataDir.Input);
         fProto.addParameterType(DataType.Float, DataDir.Output);
         fProto.setWCET_us((p) -> 0.67);
         functionPrototypes.add(fProto);
 
-        fProto = new FunctionPrototype("toInt", "toIntF32");
+        fProto = new FunctionPrototype("convert", "toIntF32");
         fProto.addParameterType(DataType.Float, DataDir.Input);
         fProto.addParameterType(DataType.Int, DataDir.Output);
         fProto.setWCET_us((p) -> 0.53);
@@ -68,13 +68,13 @@ public class Library implements Visitable {
         fProto.setWCET_us((p) -> 0.24*p.get(4).getValueAsInt());
         functionPrototypes.add(fProto);
 
-        fProto = new FunctionPrototype("toComplex", "toComplexArrayI32");
+        fProto = new FunctionPrototype("convert", "toComplexArrayI32");
         fProto.addParameterType(DataType.ArrayInt, DataDir.Input);
         fProto.addParameterType(DataType.ArrayComplexInt, DataDir.Output);
         fProto.setWCET_us((p) -> 0.4*p.get(0).getLength());
         functionPrototypes.add(fProto);
 
-        fProto = new FunctionPrototype("toFloat", "toFloatArrayI32");
+        fProto = new FunctionPrototype("convert", "toFloatArrayI32");
         fProto.addParameterType(DataType.ArrayInt, DataDir.Input);
         fProto.addParameterType(DataType.ArrayFloat, DataDir.Output);
         fProto.setWCET_us((p) -> 0.56*p.get(0).getLength());
@@ -119,13 +119,13 @@ public class Library implements Visitable {
         fProto.setWCET_us((p) -> 0.24*p.get(4).getValueAsInt());
         functionPrototypes.add(fProto);
 
-        fProto = new FunctionPrototype("toComplex", "toComplexArrayF32");
+        fProto = new FunctionPrototype("convert", "toComplexArrayF32");
         fProto.addParameterType(DataType.ArrayFloat, DataDir.Input);
         fProto.addParameterType(DataType.ArrayComplexFloat, DataDir.Output);
         fProto.setWCET_us((p) -> 0.); // TODO
         functionPrototypes.add(fProto);
 
-        fProto = new FunctionPrototype("toInt", "toIntArrayF32");
+        fProto = new FunctionPrototype("convert", "toIntArrayF32");
         fProto.addParameterType(DataType.ArrayFloat, DataDir.Input);
         fProto.addParameterType(DataType.ArrayInt, DataDir.Output);
         fProto.setWCET_us((p) -> 0.); // TODO
@@ -273,13 +273,13 @@ public class Library implements Visitable {
 
 
 
-        fProto = new FunctionPrototype("toArray", "toArrayCircularBufferI32");
+        fProto = new FunctionPrototype("convert", "toArrayCircularBufferI32");
         fProto.addParameterType(DataType.BufferInt, DataDir.Input);
         fProto.addParameterType(DataType.ArrayInt, DataDir.Output);
         fProto.setWCET_us((p) -> 0.37*p.get(1).getLength());
         functionPrototypes.add(fProto);
 
-        fProto = new FunctionPrototype("toArray", "toArrayCircularBufferF32");
+        fProto = new FunctionPrototype("convert", "toArrayCircularBufferF32");
         fProto.addParameterType(DataType.BufferFloat, DataDir.Input);
         fProto.addParameterType(DataType.ArrayFloat, DataDir.Output);
         fProto.setWCET_us((p) -> 0.37*p.get(1).getLength());

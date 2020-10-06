@@ -265,7 +265,7 @@ endseq;
 ProcessingSequence discriminate:
 
         /* Convert the last 5 minutes of signal into an array */
-        toArray(last5Minutes, cdf24array);
+        convert(last5Minutes, cdf24array);
 
         /* Compute the wavelet transform */
         cdf24(cdf24instance, cdf24array);
@@ -281,8 +281,8 @@ ProcessingSequence discriminate:
         put(signalPowerI, 5, 0);
 
         /* Convert power results to floats */
-        toFloat(noisePowerI, noisePower);
-        toFloat(signalPowerI, signalPower);
+        convert(noisePowerI, noisePower);
+        convert(signalPowerI, signalPower);
 
         /* Compute the L1 norm */
         sum(noisePower, noiseL1);
@@ -392,7 +392,7 @@ endseq;
 
 
 ProcessingSequence record:
-    toArray(last5Minutes, cdf24array);
+    convert(last5Minutes, cdf24array);
     record(f, cdf24array);
 endseq;
 

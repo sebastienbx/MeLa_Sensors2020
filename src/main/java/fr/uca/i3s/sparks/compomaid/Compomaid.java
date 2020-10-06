@@ -66,7 +66,7 @@ public class Compomaid {
         */
 
         // Applications names
-        //BeakedWhales
+        //Mermaid, BlueWhales, TutoApp
         String app1_name = "Mermaid";
         String app2_name = "BlueWhales";
 

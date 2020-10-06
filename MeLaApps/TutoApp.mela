@@ -1,0 +1,66 @@
+
+
+Mission:
+   ParkTime: 14400 minutes;
+   ParkDepth: 1000 meters;
+
+
+Coordinator:
+   DescentAcqModes: ShortRecord every 10 minutes;
+   ParkAcqModes: ContinuousRecord
+                 ShortRecord every 1 hours;
+   AscentAcqModes: ShortRecord every 10 minutes;
+
+
+
+ContinuousAcqMode ContinuousRecord:
+
+Input:
+    sensor: HydrophoneBF(20);
+    data: x(20);
+
+Variables:
+    File f;
+    /* Buffer containing 300 seconds of data,
+       or 6000 samples at 20 Hz */
+    BufferInt last5Minutes(6000);
+
+    /* STALTA variables */
+    StaLtaInt staltaInstance(200, 2000, 200, 1000);
+    ArrayInt staltaResult(200);
+
+    /* Trigger variable */
+    TriggerInt triggerInstance(RISING_EDGE, 2000, 3000, 1200);
+    Bool trigRes;
+
+RealTimeSequence detection:
+    push(last5Minutes, x);
+    stalta(staltaInstance, x, staltaResult);
+    trigger(triggerInstance, staltaResult, trigRes);
+    if trigRes:
+        @probability = 1 per day
+        call recordSeq
+    endif;
+endseq;
+
+ProcessingSequence recordSeq:
+    record(f, last5Minutes);
+endseq;
+endmode;
+
+
+
+ShortAcqMode ShortRecord:
+
+Input:
+    sensor: HydrophoneBF(200);
+    data: x(600);
+
+Variables:
+    File f;
+
+ProcessingSequence recordSeq:
+    record(f, x);
+endseq;
+
+endmode;

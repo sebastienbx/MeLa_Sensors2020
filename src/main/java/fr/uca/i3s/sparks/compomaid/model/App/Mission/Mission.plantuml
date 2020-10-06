@@ -1,0 +1,174 @@
+@startuml
+
+title __MISSION's Class Diagram__\n
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.Ascent {
+              + Ascent()
+              + getActuatorEnergy_mWh()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.Descent {
+              + Descent()
+              + getActuatorEnergy_mWh()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          abstract class fr.uca.i3s.sparks.compomaid.model.App.Mission.MissionStep {
+              - depth_m : int
+              - duration_min : int
+              - name : String
+              - schedules : ArrayList<Schedule>
+              + addSchedule()
+              + addSchedule()
+              + addSchedule()
+              + getAcqModes()
+              + getActuatorEnergy_mWh()
+              + getDepth_m()
+              + getDuration_min()
+              + getName()
+              + getSchedules()
+              + getSchedulesWithoutSleep()
+              + getSensorUsage()
+              + removeSchedule()
+              ~ MissionStep()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.Park {
+              + Park()
+              + getDefaultDuration_min()
+              + getDuration_min()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.Schedule {
+              - isContinuousExecution : boolean
+              - period : Integer
+              - periodUnit : String
+              + getAcqMode()
+              + getPeriod()
+              + getPeriodUnit()
+              + getPeriod_s()
+              + getPeriod_us()
+              + isContinuousExecution()
+              + setAcqMode()
+              + toSignal()
+              + toString()
+              ~ Schedule()
+              ~ Schedule()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.ScheduleCrossCorrelation {
+              - continuous : boolean
+              - correlation : int[]
+              - period_min : int
+              + getCorrelation()
+              + getCorrelationFactor()
+              + getMaxCorrelation()
+              + getSchedule1()
+              + getSchedule2()
+              + getTimeOffset()
+              + toString()
+              - computeCrossCorrelation()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.ScheduleSum {
+              - sum : int[]
+              + ScheduleSum()
+              + getSum()
+              + toString()
+              - sumTwo()
+          }
+        }
+      }
+    }
+  }
+  
+
+  namespace fr.uca.i3s.sparks {
+    namespace compomaid {
+      namespace model.App {
+        namespace Mission {
+          class fr.uca.i3s.sparks.compomaid.model.App.Mission.Surface {
+              + Surface()
+          }
+        }
+      }
+    }
+  }
+  
+
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Ascent -up-|> fr.uca.i3s.sparks.compomaid.model.App.Mission.MissionStep
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Descent -up-|> fr.uca.i3s.sparks.compomaid.model.App.Mission.MissionStep
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Park -up-|> fr.uca.i3s.sparks.compomaid.model.App.Mission.MissionStep
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Park o-- fr.uca.i3s.sparks.compomaid.tools.Logger : logger
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Schedule o-- fr.uca.i3s.sparks.compomaid.tools.Logger : logger
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Schedule o-- fr.uca.i3s.sparks.compomaid.model.App.AcqMode.AcqMode : acqMode
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.ScheduleCrossCorrelation o-- fr.uca.i3s.sparks.compomaid.model.App.Mission.Schedule : schedule1
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.ScheduleCrossCorrelation o-- fr.uca.i3s.sparks.compomaid.model.App.Mission.Schedule : schedule2
+  fr.uca.i3s.sparks.compomaid.model.App.Mission.Surface -up-|> fr.uca.i3s.sparks.compomaid.model.App.Mission.MissionStep
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml
